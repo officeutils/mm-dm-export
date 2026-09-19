@@ -33,6 +33,9 @@ func TestEnableChannelExportDefaultsToFalse(t *testing.T) {
 	if loaded.MaxExportPosts != "37" {
 		t.Errorf("MaxExportPosts = %q, want %q", loaded.MaxExportPosts, "37")
 	}
+	if loaded.ChannelExportAccess != channelExportAdminsOnly {
+		t.Errorf("ChannelExportAccess = %q, want %q", loaded.ChannelExportAccess, channelExportAdminsOnly)
+	}
 }
 
 func TestOnConfigurationChangeLoadsEnableChannelExport(t *testing.T) {
@@ -55,5 +58,30 @@ func TestOnConfigurationChangeLoadsEnableChannelExport(t *testing.T) {
 	}
 	if loaded.MaxExportPosts != "37" {
 		t.Errorf("MaxExportPosts = %q, want %q", loaded.MaxExportPosts, "37")
+	}
+}
+
+func TestOnConfigurationChangeLoadsChannelExportAccess(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		load string
+		want string
+	}{
+		{name: "all members", load: channelExportAllMembers, want: channelExportAllMembers},
+		{name: "admins only", load: channelExportAdminsOnly, want: channelExportAdminsOnly},
+		{name: "unknown fails closed", load: "unexpected", want: channelExportAdminsOnly},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Plugin{configurationLoader: stubConfigurationLoader{load: func(loaded *configuration) {
+				loaded.MaxExportPosts = "37"
+				loaded.ChannelExportAccess = tc.load
+			}}}
+			if err := p.OnConfigurationChange(); err != nil {
+				t.Fatalf("OnConfigurationChange returned an error: %v", err)
+			}
+			if got := p.channelExportAccess(); got != tc.want {
+				t.Errorf("channelExportAccess() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

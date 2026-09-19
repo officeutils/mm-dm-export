@@ -73,7 +73,7 @@ func TestExportChannelCommandDeliversRequesterBoundSingleUseExport(t *testing.T)
 		errs:  map[string]*model.AppError{},
 	}
 	p := &Plugin{
-		configuration:        configuration{EnableChannelExport: true, MaxExportPosts: "1"},
+		configuration:        configuration{EnableChannelExport: true, ChannelExportAccess: channelExportAllMembers, MaxExportPosts: "1"},
 		currentChannelGetter: &recordingCurrentChannelGetter{channel: &model.Channel{Id: "channel-id", Name: "alice--bob", DisplayName: "Alice & Bob", Type: model.ChannelTypeDirect}},
 		memberGetter:         validChannelCommandMemberGetter(),
 		permissionChecker:    &recordingChannelPermissionChecker{allowed: true},

@@ -20,6 +20,23 @@
         "type": "bool",
         "help_text": "Opt in to /export-channel for the current public, private, or direct channel. Membership and read permission are always required.",
         "default": false
+      },
+      {
+        "key": "ChannelExportAccess",
+        "display_name": "Who can export channels",
+        "type": "dropdown",
+        "help_text": "Choose who may use /export-channel when channel export is enabled. In administrators-only mode, administrators may export only channels where they are current members and have normal read access.",
+        "default": "admins_only",
+        "options": [
+          {
+            "display_name": "System administrators only",
+            "value": "admins_only"
+          },
+          {
+            "display_name": "All channel members",
+            "value": "all_members"
+          }
+        ]
       }
     ]
   },

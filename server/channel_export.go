@@ -66,6 +66,16 @@ func (p *Plugin) executeExportChannelCommand(args *model.CommandArgs) *model.Com
 	if !permissions.HasPermissionToChannel(args.UserId, channel.Id, model.PermissionReadChannel) {
 		return commandError("Unable to export the current channel.")
 	}
+	if p.channelExportAccess() == channelExportAdminsOnly {
+		users := p.userGetter
+		if users == nil {
+			users = p.API
+		}
+		requester, appErr := users.GetUser(args.UserId)
+		if appErr != nil || requester == nil || requester.Id != args.UserId || !requester.IsSystemAdmin() {
+			return commandError("Unable to export the current channel.")
+		}
+	}
 
 	postsAPI := p.postGetter
 	if postsAPI == nil {

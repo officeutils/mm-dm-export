@@ -15,12 +15,14 @@ import (
 )
 
 const (
-	commandTrigger        = "export-dm"
-	channelCommandTrigger = "export-channel"
-	pluginID              = "com.officeutils.mm-conversation-export"
-	defaultMaxExportPosts = 1000
-	maxExportPostsSafety  = 10000
-	postPageSize          = 200
+	commandTrigger          = "export-dm"
+	channelCommandTrigger   = "export-channel"
+	pluginID                = "com.officeutils.mm-conversation-export"
+	defaultMaxExportPosts   = 1000
+	maxExportPostsSafety    = 10000
+	postPageSize            = 200
+	channelExportAllMembers = "all_members"
+	channelExportAdminsOnly = "admins_only"
 )
 
 var usernamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,63}$`)
@@ -85,6 +87,17 @@ type Plugin struct {
 type configuration struct {
 	MaxExportPosts      string
 	EnableChannelExport bool
+	ChannelExportAccess string
+}
+
+func (p *Plugin) channelExportAccess() string {
+	p.configurationMu.RLock()
+	defer p.configurationMu.RUnlock()
+	if p.configuration.ChannelExportAccess == channelExportAllMembers {
+		return channelExportAllMembers
+	}
+	// Empty and unknown values fail closed to the default, restrictive mode.
+	return channelExportAdminsOnly
 }
 
 func (p *Plugin) maxExportPosts() int {
@@ -130,6 +143,9 @@ func (p *Plugin) OnConfigurationChange() error {
 	}
 	if _, err := parseMaxExportPosts(next.MaxExportPosts); err != nil {
 		return err
+	}
+	if next.ChannelExportAccess != channelExportAllMembers && next.ChannelExportAccess != channelExportAdminsOnly {
+		next.ChannelExportAccess = channelExportAdminsOnly
 	}
 	p.configurationMu.Lock()
 	p.configuration = next
